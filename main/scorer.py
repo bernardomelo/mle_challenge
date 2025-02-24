@@ -1,6 +1,5 @@
 import os
 
-import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -132,7 +131,6 @@ class Scorer:
             output_dir = Path("output")
             output_dir.mkdir(exist_ok=True)
 
-            # Generate the output file path with today's date
             today_date = datetime.now().strftime("%Y-%m-%d")
             output_file = base_dir / output_dir / f"predictions-{today_date}.parquet"
 
