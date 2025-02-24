@@ -11,8 +11,8 @@ from sklearn.pipeline import Pipeline
 import pickle
 import numpy as np
 
-pipeline_file_path = 'artifacts/pipeline.jsonc'
-data_file_path = 'data/dataset.parquet'
+pipeline_file_path = '../artifacts/pipeline.jsonc'
+data_file_path = '../data/dataset.parquet'
 
 
 # Load any asset
@@ -21,7 +21,7 @@ def load(type, **kwargs):
         # TODO: Implement a method to read the data file and return a dataframe
         ...
     if (type == 'model'):
-        with open('artifacts/pipeline.jsonc', 'r') as f:
+        with open('../artifacts/pipeline.jsonc', 'r') as f:
             str_json = '\n'.join(f.readlines()[3:])
         import json
         with open(json.loads(str_json)["steps"]['model'], 'rb') as f:
