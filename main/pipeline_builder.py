@@ -1,9 +1,14 @@
 import importlib
+from typing import Dict
 
+from sklearn.pipeline import Pipeline
 from decouple import config, UndefinedValueError
 
 
 class PipelineBuilder:
+    def __init__(self, data_loader):
+        self.data_loader = data_loader
+        self.pipeline_config = None
 
     @staticmethod
     def _instantiate_step(step_name: str, step_params: dict) -> tuple:
@@ -32,5 +37,30 @@ class PipelineBuilder:
         except Exception as e:
             raise RuntimeError(f"Error while trying to instantiate pipeline step: {e}")
 
-    def build(self):
-        pass
+    def _instantiate_pipeline(self) -> Pipeline:
+        try:
+            if not self.pipeline_config:
+                raise ValueError(
+                    "Pipeline configuration not loaded. Call load_pipeline() first."
+                )
+
+            steps_instances = []
+            for step_name, step_params in self.pipeline_config.items():
+                try:
+                    step = self._instantiate_step(step_name, step_params)
+                    steps_instances.append(step)
+                except ValueError as e:
+                    print(f"Skipping unsupported step: {step_name} - {e}")
+
+            return Pipeline(steps_instances)
+
+        except Exception as e:
+            raise RuntimeError(f"Error while trying to instantiate pipeline: {e}")
+
+    def build(self, configs: Dict) -> Pipeline:
+        try:
+            self.pipeline_config = configs
+            return self._instantiate_pipeline()
+
+        except Exception as e:
+            raise RuntimeError(e)
