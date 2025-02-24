@@ -1,4 +1,7 @@
+import os
 import pyarrow.parquet as pq
+
+from pathlib import Path
 from typing import Generator
 
 
@@ -17,8 +20,22 @@ class DataLoader:
         except Exception as e:
             raise RuntimeError(f"Error reading Parquet file from {filepath}: {e}")
 
-    def load_model(self):
-        pass
+    @staticmethod
+    def load_model(filepath: str) -> object:
+        try:
+            current_script_dir = os.path.dirname(os.path.abspath(__file__))
+            base_dir = os.path.dirname(current_script_dir)
+            model_path = Path(filepath)
+            full_model_path = base_dir / model_path
+
+            with open(full_model_path, "rb") as model_file:
+                import pickle
+                model = pickle.load(model_file)
+
+            return model
+
+        except Exception as e:
+            raise RuntimeError(f"Error loading model from {filepath}: {e}")
 
     def load_pipeline_file(self):
         pass
