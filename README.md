@@ -96,11 +96,11 @@ This project is a refactored and modularized version of the `job_test_challenge.
 - MAX_WORKERS=int
 - SKLEARN_MODULES='modules separated with comma: sklearn.preprocessing,sklearn.feature_selection,sklearn.decomposition,sklearn.ensemble'
 
-3. Run the scoring process:
+2. Run the scoring process:
     ```bash
    python run_score_pipeline.py
 
-4. Alternatively, you can provide command-line arguments:
+3. Alternatively, you can provide command-line arguments:
     ```bash
    python run_score_pipeline.py --data_path path/to/data.parquet --pipeline_path path/to/pipeline.jsonc --batch_size 1000 --max_workers 4
 
