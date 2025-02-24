@@ -3,6 +3,10 @@ from datetime import datetime
 
 
 class Logger:
+    """
+    This module provides a customizable logging utility with colorized console output.
+    It logs messages to both a file (named with the current date) and the console.
+    """
     def __init__(self):
         today_date = datetime.now().strftime("%Y-%m-%d")
         self.log_file = f"logs/log-{today_date}.log"
