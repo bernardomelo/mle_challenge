@@ -11,4 +11,7 @@ env/
 .vscode/
 .idea/
 
-output/
+#output/
+#artifacts/model.pkl
+#artifacts/pipeline.jsonc
+#data/dataset.parquet
