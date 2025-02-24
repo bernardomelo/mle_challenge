@@ -1,8 +1,9 @@
+import json
 import os
 import pyarrow.parquet as pq
 
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Dict
 
 
 class DataLoader:
@@ -37,5 +38,19 @@ class DataLoader:
         except Exception as e:
             raise RuntimeError(f"Error loading model from {filepath}: {e}")
 
-    def load_pipeline_file(self):
-        pass
+    @staticmethod
+    def load_pipeline_file(filepath: str) -> Dict:
+        try:
+            with open(filepath, "r") as file:
+                lines = [
+                    line
+                    for line in file.readlines()
+                    if not line.strip().startswith("//")
+                ]
+                pipeline_spec = json.loads("\n".join(lines))
+                steps_config = pipeline_spec.get("steps", {})
+            return steps_config
+
+        except Exception as e:
+            raise RuntimeError(f"Error building pipeline from {filepath}: {e}")
+

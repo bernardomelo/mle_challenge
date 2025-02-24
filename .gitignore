@@ -12,5 +12,6 @@ env/
 .idea/
 
 output/
-artifacts/
-data/
+artifacts/model.pkl
+artifacts/pipeline.jsonc
+data/dataset.parquet
