@@ -1,20 +1,25 @@
 import os
+
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-import pandas as pd
 
-from pathlib import Path
 from datetime import datetime
-from typing import List, Generator, Dict, Optional
-from data_loader import DataLoader
-from logger import Logger
-from pipeline_builder import PipelineBuilder, Pipeline
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from data_loader import DataLoader
+from pipeline_builder import PipelineBuilder
+from logger import Logger
+from typing import List, Optional, Generator, Dict, Any
 
 
 class Scorer:
+    """
+    Scorer class responsible for running the prediction process.
+    Process and scores data in chunks.
+    """
+
     def __init__(self, data_path, pipeline_path):
         self.data_path = data_path
         self.pipeline_path = pipeline_path
@@ -24,6 +29,16 @@ class Scorer:
 
     @staticmethod
     def _extract_features(record: Dict, features: List) -> List:
+        """
+        Extracts specified features from a single data record.
+
+        Args:
+            record (Dict): A single data record as a dictionary.
+            features (List): List of feature keys to extract.
+
+        Returns:
+            List: A list of feature values.
+        """
         try:
             row = []
             for feat in features:
@@ -38,6 +53,16 @@ class Scorer:
             raise RuntimeError(f"Error while extracting features: {e}")
 
     def _batch_generator(self, batch_size: int, features: List) -> Generator:
+        """
+        Generates batches of data as DataFrames.
+
+        Args:
+            batch_size (int): Number of records per batch.
+            features (List): List of feature keys to extract from each record.
+
+        Yields:
+            pd.DataFrame: A batch of data as a DataFrame.
+        """
         try:
             batch = []
             self.logger.log_info("Starting batch data yielding...")
@@ -54,7 +79,17 @@ class Scorer:
         except Exception as e:
             raise RuntimeError(f"Error while generating batches: {e}")
 
-    def _process_batch(self, batch: pd.DataFrame, pipeline: Pipeline) -> Optional:
+    def _process_batch(self, batch: pd.DataFrame, pipeline: Any) -> Optional:
+        """
+        Processes a single batch of data through the pipeline and model.
+
+        Args:
+            batch (pd.DataFrame): A batch of data as a DataFrame.
+            pipeline: The scikit-learn pipeline to transform the data.
+
+        Returns:
+            Optional: Predictions for the batch as a NumPy array, or None if an error occurs.
+        """
         try:
             transformed_batch = pipeline.fit_transform(batch)
             if not hasattr(self.model, "predict"):
@@ -65,6 +100,16 @@ class Scorer:
             return None
 
     def score(self, batch_size: int = 1000, max_workers: int = 4) -> str:
+        """
+        Loads the model and data, applies the pipeline transformation in batches, and scores the data saving it to a parquet file.
+
+        Args:
+            batch_size (int): Number of records to process in one batch.
+            max_workers (int): Maximum number of parallel workers.
+
+        Returns:
+            str: The output file path.
+        """
         try:
             features = ["vibration_x", "vibration_y", "vibration_z"]
 
@@ -87,6 +132,7 @@ class Scorer:
             output_dir = Path("output")
             output_dir.mkdir(exist_ok=True)
 
+            # Generate the output file path with today's date
             today_date = datetime.now().strftime("%Y-%m-%d")
             output_file = base_dir / output_dir / f"predictions-{today_date}.parquet"
 
@@ -96,7 +142,7 @@ class Scorer:
                 )
 
             with pq.ParquetWriter(
-                    output_file, pa.schema([("prediction", pa.int64())])
+                output_file, pa.schema([("prediction", pa.int64())])
             ) as writer:
                 with ThreadPoolExecutor(max_workers=max_workers) as executor:
                     futures = []
@@ -125,4 +171,3 @@ class Scorer:
         except Exception as e:
             self.logger.log_fail(f"Scoring process failed: {e}")
             raise
-
